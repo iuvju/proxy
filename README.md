@@ -11,7 +11,11 @@
 127.0.0.1 g.tbcdn.cn g.assets.daily.taobao.net
 ```
 
-#####2.执行proxy-c.js
+#####2.进入目录，执行proxy-c.js
+```
+cd proxy4gitlab
+node proxy-c.js //注：mac下需要用 sudo node proxy-c.js才能打开80端口
+```
 
 #####3.打开浏览器 输入http://g.tbcdn.cn
 

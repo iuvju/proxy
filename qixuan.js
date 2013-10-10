@@ -6,6 +6,8 @@ var assert = require('assert'),
     http = require('http'),
     querystring = require('querystring');
 
+var ASSETS_ROOT = path.resolve(__dirname, '../..');
+
 var less = require('less');
 
 var USE_LOCAL = true,
@@ -200,25 +202,24 @@ function getFiles(files, success, fail,req,res) {
     files.forEach(function (file, index) {
       if(USE_LOCAL){
           for(var i in rule){
-              var localPath = rule[i]['group']+"/"+rule[i]['project'];
-              var reg = new RegExp(localPath+"\\/\\d.\\d.\\d");
-
+              //var localPath = rule[i]['group']+"/"+rule[i]['project'];
+              //var reg = new RegExp(localPath+"\\/\\d.\\d.\\d");
 			  // 增加替换为本地src目录 
-			  file = file.replace(localPath, localPath + '/src');
-              var hasMapping = (function(){
-                  if(reg.test(file)){
-                    return true;
-                  }
-                  return false;
-              })();
+			  //file = file.replace(localPath, localPath + '/src');
+			  var local_file = file.replace(/\d+.\d+.\d+/g, 'src');
+			console.log(file);
+              
               if(IGNORE_MIN){
                 file = file.replace(/-min/,"");
+				local_file = local_file.replace(/-min/,"");
               }
-              fs.exists("."+file.replace(reg,localPath),function(e){
+              fs.exists(path.join(ASSETS_ROOT, local_file), function(e){
+				  console.log(e);
                 if(e){
-                    file = file.replace(reg,localPath);
-                }
-                getFile(file, cb(index),req,res);
+					getFile(local_file, cb(index),req,res);
+                }else{
+					getRemote(file, cb(index), req, res);
+				}
               })
           }
       }
@@ -254,7 +255,7 @@ function getFile(file, cb,req,res) {
 }
 
 function getRemote(file, cb,req,res) {
-// console.log("获取远程文件："+file)
+ console.log("获取远程文件："+file)
     http.get({
         headers: {
             host: 'g.tbcdn.cn'
@@ -294,12 +295,12 @@ function getLocal(file,cb,req,res) {
         pre,
         idx,
         lessfile,
-        filename = "."+file;
+        filename = path.join(ASSETS_ROOT, file);
 
   idx = file.indexOf('.css');
   pre = file.slice(0,idx);
   lessfile = "."+pre+'.less';
-
+console.log(filename);
   if(idx>-1){
     fs.exists(lessfile,function(b){
       if(b){
@@ -328,6 +329,7 @@ function getLocal(file,cb,req,res) {
     })
   }else{
     fs.exists(filename,function(b){
+		console.log(b);
       if(b){
         console.log("[local]"+filename);
         fs.readFile(filename,function(err,data){
@@ -370,5 +372,5 @@ getIp(function () {
         } else {
             proxy(req, res);
         }
-    }).listen(80);
+    }).listen(8000);
 });
